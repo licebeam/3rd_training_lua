@@ -1967,6 +1967,10 @@ local function before_frame()
 
     joypad.set(_input)
 
+    -- TODO - the game should not be freeze = is_menu_open if we are in reflector online
+    local _write_game_vars_settings = {freeze = is_menu_open, infinite_time = training_settings.infinite_time, music_volume = training_settings.music_volume}
+    write_game_vars(_write_game_vars_settings)
+
     update_framedata_recording(player_objects[1], projectiles)
     update_idle_framedata_recording(player_objects[2])
     update_projectiles_recording(projectiles)
@@ -2007,10 +2011,60 @@ end
 
 is_menu_open = false
 
+-- <item value="0x01">Alex</item>
+-- <item value="0x02">Ryu</item>
+-- <item value="0x03">Yun</item>
+-- <item value="0x04">Dudley</item>
+-- <item value="0x05">Necro</item>
+-- <item value="0x06">Hugo</item>
+-- <item value="0x07">Ibuki</item>
+-- <item value="0x08">Elena</item>
+-- <item value="0x09">Oro</item>
+-- <item value="0x10">Yang</item>
+-- <item value="0x11">Ken</item>
+-- <item value="0x12">Sean</item>
+-- <item value="0x13">Urien</item>
+-- <item value="0x14">Akuma</item>
+-- <item value="0x15">Chun-Li</item>
+-- <item value="0x16">Makoto</item>
+-- <item value="0x17">Q</item>
+-- <item value="0x18">Twelve</item>
+-- <item value="0x19">Remy</item>
+-- <item value="0x20">#Gill#</item>
+-- <item value="0x21">#Shin Akuma# (Text Incorrect)</item>
+
 local function hyper_reflector_rendering()
-    if GLOBAL_isHyperReflectorOnline then gui.text(10, 1, 'HYPER-REFLECTOR v0.0.1a', util_colors.gui.white, util_colors.input_history.unknown2) end
+    if GLOBAL_isHyperReflectorOnline then 
+        gui.text(10, 1, 'HYPER-REFLECTOR v0.1.0', util_colors.gui.white, util_colors.input_history.unknown2)
+        end
+    if not GLOBAL_isHyperReflectorOnline then 
+        gui.text(10, 1, 'memory stuff', util_colors.gui.white, util_colors.input_history.unknown2)
+        -- current guage int? we can use this to track how much meter the player has spent / gained
+        gui.text(20, 8, memory.readbyte(0x020695B5), util_colors.gui.white, util_colors.input_history.unknown2)   
+        -- current meter count ie: a full number change on the ui?
+        gui.text(10, 8, memory.readbyte(0x020286AB), util_colors.gui.white, util_colors.input_history.unknown2)   
+        -- current character p1
+        gui.text(50, 8, memory.readbyte(0x02011387), util_colors.gui.white, util_colors.input_history.unknown2)   
+        gui.text(58, 8, memory.readbyte(0x02011388), util_colors.gui.white, util_colors.input_history.unknown2)  
+        -- super art selected
+        gui.text(58, 20, memory.readbyte(0x0201138B), util_colors.gui.white, util_colors.input_history.unknown2)  
+        -- combo count
+        gui.text(10, 20, memory.readbyte(0x020696C5), util_colors.gui.white, util_colors.input_history.unknown2)  
+        end
+
     -- gui.text(100, 20, game_name, util_colors.gui.white,
     --          util_colors.input_history.unknown2)
+end
+
+local function hyper_set_data()
+        -- you can use this to force a super are selection, for example maybe you want to have the players lock in on the app instead of the game?
+        memory.writebyte(0x0201138B, 2)
+        -- char
+        memory.writebyte(0x02011387, 3)
+        -- color
+        memory.writebyte(0x02015683, 6)
+        -- stage select
+        memory.writebyte(0x02026BB0, 8)
 end
 
 function on_gui()
@@ -2419,7 +2473,8 @@ function on_gui()
 
         menu_stack_draw()
     end
-
+    
+    hyper_set_data()
     gui.box(0, 0, 0, 0, 0, 0) -- if we don't draw something, what we drawed from last frame won't be cleared
 end
 
